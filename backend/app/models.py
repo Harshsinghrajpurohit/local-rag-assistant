@@ -36,6 +36,10 @@ class DocumentMetadata(BaseModel):
         ...,
         description="Original filename (e.g., 'research_paper.pdf')"
     )
+    file_type: Optional[str] = Field(
+        None,
+        description="Lowercase file type without dot (pdf, docx, txt, md, csv, xlsx)"
+    )
     upload_time: str = Field(
         ...,
         description="ISO 8601 UTC timestamp when document was uploaded. "
@@ -146,10 +150,17 @@ class Source(BaseModel):
     Design note: RRF score is NOT normalized to [0, 1]. It is a rank
     aggregation score that combines keyword and semantic relevance.
     """
-    page: int = Field(
-        ...,
+    page: Optional[int] = Field(
+        None,
         ge=1,
-        description="Page number in original document (1-indexed)"
+        description="Page number in original document (1-indexed). "
+                    "Present for PDFs; None for formats without pages."
+    )
+    location: Optional[str] = Field(
+        None,
+        description="Human-readable source location for page-less formats "
+                    "(e.g. 'Section: Intro > Setup' or 'Sheet: Sales, rows 2-41'). "
+                    "None for PDFs (use page instead)."
     )
     file: str = Field(
         ...,
@@ -265,6 +276,10 @@ class Document(BaseModel):
         ...,
         description="Original filename (e.g., 'research_paper.pdf')"
     )
+    file_type: Optional[str] = Field(
+        None,
+        description="Lowercase file type without dot (pdf, docx, txt, md, csv, xlsx)"
+    )
     num_chunks: int = Field(
         ...,
         ge=1,
@@ -358,6 +373,10 @@ class DocumentResponse(BaseModel):
         ...,
         description="Original filename (echo of upload)"
     )
+    file_type: Optional[str] = Field(
+        None,
+        description="Lowercase file type without dot (pdf, docx, txt, md, csv, xlsx)"
+    )
     num_chunks: int = Field(
         ...,
         ge=1,
@@ -450,6 +469,9 @@ class ErrorResponse(BaseModel):
     Error types and HTTP status codes:
     - FILE_TOO_LARGE (413): Uploaded file exceeds 50 MB
     - INVALID_MIME_TYPE (400): File is not a PDF
+    - UNSUPPORTED_FORMAT (400): File extension not in the supported list
+    - EMPTY_FILE (400): Uploaded file has zero bytes
+    - EXTRACTION_FAILED (422): Document content could not be extracted/parsed
     - PDF_CORRUPTED (422): PDF parsing failed
     - DOCUMENT_NOT_FOUND (404): UUID doesn't exist
     - OLLAMA_UNAVAILABLE (503): LLM service down
@@ -518,6 +540,9 @@ def get_current_timestamp() -> str:
 ERROR_STATUS_CODES = {
     "FILE_TOO_LARGE": 413,
     "INVALID_MIME_TYPE": 400,
+    "UNSUPPORTED_FORMAT": 400,
+    "EMPTY_FILE": 400,
+    "EXTRACTION_FAILED": 422,
     "PDF_CORRUPTED": 422,
     "DOCUMENT_NOT_FOUND": 404,
     "OLLAMA_UNAVAILABLE": 503,

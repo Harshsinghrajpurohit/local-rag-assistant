@@ -8,6 +8,7 @@ from unittest.mock import Mock, patch, MagicMock
 import requests
 import json
 
+from backend.app.exceptions import OllamaUnavailableError
 from backend.app.services.answer_generator import AnswerGenerator
 
 
@@ -105,7 +106,7 @@ def test_answer_generation_with_sources(answer_generator, mock_retriever_results
         mock_post.return_value = mock_response
 
         result = answer_generator.generate(
-            query="What is ML?",
+            query="What is machine learning?",
             retriever_results=mock_retriever_results,
         )
 
@@ -154,7 +155,7 @@ def test_answer_generation_token_counting(answer_generator, mock_retriever_resul
         mock_post.return_value = mock_response
 
         result = answer_generator.generate(
-            query="Q?", retriever_results=mock_retriever_results
+            query="machine learning", retriever_results=mock_retriever_results
         )
 
         # Should be sum of eval_count and prompt_eval_count
@@ -263,13 +264,13 @@ def test_confidence_calculation(answer_generator, mock_retriever_results):
         mock_post.return_value = mock_response
 
         result = answer_generator.generate(
-            query="Q?", retriever_results=mock_retriever_results
+            query="machine learning", retriever_results=mock_retriever_results
         )
 
         # Confidence should be between 0 and 1
         assert 0.0 <= result["confidence"] <= 1.0
 
-        # With high RRF scores, confidence should be high
+        # With high RRF scores and matching terms, confidence should be high
         assert result["confidence"] > 0.5
 
 
@@ -303,7 +304,7 @@ def test_confidence_single_high_score(answer_generator):
         mock_post.return_value = mock_response
 
         result = answer_generator.generate(
-            query="Q?", retriever_results=retriever_results
+            query="high quality", retriever_results=retriever_results
         )
 
         # High RRF score should yield high confidence
@@ -371,7 +372,7 @@ def test_prompt_includes_context(answer_generator):
         }
         mock_post.return_value = mock_response
 
-        answer_generator.generate(query="Q?", retriever_results=retriever_results)
+        answer_generator.generate(query="topic X", retriever_results=retriever_results)
 
         # Check that prompt was sent to Ollama
         call_args = mock_post.call_args
@@ -401,7 +402,7 @@ def test_prompt_includes_query(answer_generator):
         }
         mock_post.return_value = mock_response
 
-        question = "What is the capital of France?"
+        question = "What does some passage say?"
         answer_generator.generate(
             query=question, retriever_results=retriever_results
         )
@@ -430,7 +431,7 @@ def test_ollama_api_parameters(answer_generator, mock_retriever_results):
         }
         mock_post.return_value = mock_response
 
-        answer_generator.generate(query="Q?", retriever_results=mock_retriever_results)
+        answer_generator.generate(query="machine learning", retriever_results=mock_retriever_results)
 
         # Verify API was called with correct parameters
         call_args = mock_post.call_args
@@ -440,7 +441,10 @@ def test_ollama_api_parameters(answer_generator, mock_retriever_results):
         assert "generate" in url
         assert payload["model"] == "qwen3:4b-instruct"
         assert payload["stream"] is False
-        assert payload["temperature"] == 0.3
+        # Generation parameters must live inside Ollama's "options" object
+        assert payload["options"]["temperature"] == 0.3
+        assert payload["options"]["num_predict"] == 500
+        assert "temperature" not in payload
         assert "prompt" in payload
 
 
@@ -449,12 +453,12 @@ def test_ollama_timeout(answer_generator, mock_retriever_results):
     with patch("requests.post") as mock_post:
         mock_post.side_effect = requests.exceptions.Timeout("Connection timeout")
 
-        with pytest.raises(RuntimeError) as exc_info:
+        with pytest.raises(OllamaUnavailableError) as exc_info:
             answer_generator.generate(
-                query="Q?", retriever_results=mock_retriever_results
+                query="machine learning", retriever_results=mock_retriever_results
             )
 
-        assert "Ollama API error" in str(exc_info.value)
+        assert exc_info.value.status_code == 503
 
 
 def test_ollama_connection_error(answer_generator, mock_retriever_results):
@@ -464,12 +468,12 @@ def test_ollama_connection_error(answer_generator, mock_retriever_results):
             "Cannot connect to Ollama"
         )
 
-        with pytest.raises(RuntimeError) as exc_info:
+        with pytest.raises(OllamaUnavailableError) as exc_info:
             answer_generator.generate(
-                query="Q?", retriever_results=mock_retriever_results
+                query="machine learning", retriever_results=mock_retriever_results
             )
 
-        assert "Ollama API error" in str(exc_info.value)
+        assert exc_info.value.status_code == 503
 
 
 # ============================================================================
@@ -602,13 +606,167 @@ def test_multiple_sequential_calls(answer_generator, mock_retriever_results):
 
         # Call twice
         result1 = answer_generator.generate(
-            query="First question?", retriever_results=mock_retriever_results
+            query="What is machine learning?", retriever_results=mock_retriever_results
         )
         result2 = answer_generator.generate(
-            query="Second question?", retriever_results=mock_retriever_results
+            query="What is deep learning?", retriever_results=mock_retriever_results
         )
 
         # Both should succeed
         assert result1["answer"]
         assert result2["answer"]
         assert mock_post.call_count == 2
+
+
+# ============================================================================
+# Abstention and Confidence Tests (Phase 10)
+# ============================================================================
+
+
+def test_irrelevant_results_abstention(answer_generator):
+    """Retrieved documents exist but none contain query terms → abstain."""
+    irrelevant_docs = [
+        "Employees are entitled to 20 days of paid annual leave per calendar year.",
+        "Sick leave is accrued at 1 day per month, up to 12 days per year.",
+        "Meal expenses are capped at $75 per day.",
+        "Remote work is allowed up to 3 days per week.",
+        "Equipment stipend of $500 is available for home office setup.",
+    ]
+    metas = [
+        {"file_name": "employee_handbook.txt", "page": None, "section": "Leave Policy"}
+    ] * len(irrelevant_docs)
+    results = {
+        "ids": [f"doc_{i}" for i in range(len(irrelevant_docs))],
+        "documents": irrelevant_docs,
+        "metadatas": metas,
+        "distances": [0.1] * len(irrelevant_docs),
+        "bm25_scores": [0.0] * len(irrelevant_docs),
+        "rrf_scores": [0.05] * len(irrelevant_docs),
+    }
+
+    response = answer_generator.generate(
+        query="What is the company's dress code policy?",
+        retriever_results=results,
+        max_sources=5,
+    )
+
+    assert response["confidence"] < 0.3, (
+        f"Expected low confidence for irrelevant results, got {response['confidence']}"
+    )
+    # Sources are extracted before the abstention check so that source
+    # truncation can be verified independently of LLM generation. Even when
+    # evidence is insufficient, retrieved sources are still returned for
+    # transparency (up to max_sources).
+    assert len(response["sources"]) == 5, (
+        f"Expected 5 sources (max_sources=5), got {len(response['sources'])}"
+    )
+    answer_lower = response["answer"].lower()
+    assert "don't have enough information" in answer_lower or (
+        "not contain relevant evidence" in answer_lower
+    ), f"Expected abstention message, got: {response['answer']}"
+
+
+def test_missing_evidence_abstention(answer_generator):
+    """Case with relevant_doc_ids=[] (missing evidence) → no false facts generated."""
+    irrelevant_docs = [
+        "QuantumEdge QX-500 features a 32-core Xeon Platinum processor.",
+        "The system includes 512 GB of DDR5 ECC memory.",
+        "Storage is 15.36 TB NVMe SSD.",
+    ]
+    metas = [
+        {"file_name": "product_specs.md", "page": None, "section": "Overview"}
+    ] * len(irrelevant_docs)
+    results = {
+        "ids": [f"doc_{i}" for i in range(len(irrelevant_docs))],
+        "documents": irrelevant_docs,
+        "metadatas": metas,
+        "distances": [0.1] * len(irrelevant_docs),
+        "bm25_scores": [0.0] * len(irrelevant_docs),
+        "rrf_scores": [0.05] * len(irrelevant_docs),
+    }
+
+    response = answer_generator.generate(
+        query="What is the CEO's salary?",
+        retriever_results=results,
+        max_sources=5,
+    )
+
+    assert response["confidence"] < 0.3, (
+        f"Expected low confidence for missing evidence, got {response['confidence']}"
+    )
+    answer_lower = response["answer"].lower()
+    assert "$" not in response["answer"], (
+        f"Should not fabricate salary info, got: {response['answer']}"
+    )
+    assert "don't have enough information" in answer_lower or (
+        "not contain relevant evidence" in answer_lower
+    ), f"Should abstain rather than discuss CEO salary, got: {response['answer']}"
+
+
+def test_confidence_zero_for_irrelevant(answer_generator):
+    """Confidence should approach 0.0 when evidence_sufficiency is 0."""
+    irrelevant_docs = [
+        "Employees are entitled to 20 days of paid annual leave per calendar year.",
+        "Sick leave is accrued at 1 day per month.",
+    ]
+    metas = [
+        {"file_name": "employee_handbook.txt", "page": None}
+    ] * len(irrelevant_docs)
+    results = {
+        "ids": ["doc_0", "doc_1"],
+        "documents": irrelevant_docs,
+        "metadatas": metas,
+        "distances": [0.1, 0.2],
+        "bm25_scores": [0.0, 0.0],
+        "rrf_scores": [0.05, 0.04],
+    }
+
+    response = answer_generator.generate(
+        query="What is the weather forecast for Mars?",
+        retriever_results=results,
+        max_sources=5,
+    )
+
+    assert response["confidence"] == 0.0, (
+        f"Expected confidence 0.0 for zero evidence overlap, got {response['confidence']}"
+    )
+
+
+def test_supported_question_not_abstained(answer_generator):
+    """When relevant evidence is present, system should generate a normal answer."""
+    relevant_docs = [
+        "Employees are entitled to 20 days of paid annual leave per calendar year.",
+        "Meal expenses are capped at $75 per day.",
+    ]
+    metas = [
+        {"file_name": "employee_handbook.txt", "page": None, "section": "Leave Policy"}
+    ] * len(relevant_docs)
+    results = {
+        "ids": ["doc_0", "doc_1"],
+        "documents": relevant_docs,
+        "metadatas": metas,
+        "distances": [0.1, 0.2],
+        "bm25_scores": [0.0, 0.0],
+        "rrf_scores": [0.05, 0.04],
+    }
+
+    with patch("requests.post") as mock_post:
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            "response": "Employees get 20 days of leave and meal expenses are capped at $75 per day.",
+            "eval_count": 20,
+            "prompt_eval_count": 100,
+        }
+        mock_post.return_value = mock_response
+
+        response = answer_generator.generate(
+            query="What are the leave and meal policies?",
+            retriever_results=results,
+            max_sources=5,
+        )
+
+    mock_post.assert_called_once()
+    assert response["confidence"] > 0.3, (
+        f"Expected reasonable confidence for supported query, got {response['confidence']}"
+    )
+    assert "20 days" in response["answer"]

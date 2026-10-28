@@ -206,6 +206,25 @@ def _extract_docx(file_path: str) -> List[Dict[str, Any]]:
             texts.append(para.text)
     flush()
 
+    # Extract tables after paragraphs. Tables are independent block-level
+    # elements in DOCX; they are not part of the heading-bounded paragraph
+    # flow, so they get their own sheet/rows location metadata.
+    table_index = 0
+    for table in document.tables:
+        table_index += 1
+        rows = []
+        for row in table.rows:
+            cells = [cell.text.strip() for cell in row.cells]
+            if any(c.strip() for c in cells):
+                rows.append(cells)
+        if len(rows) < 2:
+            # Skip empty or header-only tables - nothing to retrieve.
+            continue
+        header = rows[0]
+        data_rows = rows[1:]
+        table_segments = _tabular_segments(header, data_rows, sheet_label=f"Table {table_index}")
+        segments.extend(table_segments)
+
     if not segments:
         raise ExtractionFailedError("DOCX file contains no readable text")
     return segments

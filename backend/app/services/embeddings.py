@@ -59,7 +59,7 @@ class EmbeddingsService:
                 response = requests.post(
                     self.embed_url,
                     json={"model": self.model, "input": t},
-                    timeout=30,
+                    timeout=60,
                 )
                 response.raise_for_status()
             except requests.RequestException as e:

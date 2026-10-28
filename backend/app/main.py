@@ -15,6 +15,7 @@ from fastapi.responses import JSONResponse
 from .exceptions import APIException, FileTooLargeError, InvalidMimeTypeError, \
     PdfCorruptedError, DocumentNotFoundError, OllamaUnavailableError, \
     DeleteFailedError, DeletePartialError, InternalServerError, InvalidRequestError
+from .config import Config
 from .models import ErrorResponse, generate_request_id
 
 def create_app() -> FastAPI:
@@ -96,4 +97,4 @@ app = create_app()
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host=Config.API_HOST, port=Config.API_PORT)

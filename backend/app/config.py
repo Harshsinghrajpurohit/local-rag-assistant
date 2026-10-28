@@ -6,6 +6,12 @@ Reads environment variables with sensible defaults.
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+# Load .env once at import time (application startup). Default override=False
+# ensures real process environment variables are never overwritten.
+load_dotenv()
+
 
 class Config:
     """Environment-based configuration."""
@@ -27,6 +33,11 @@ class Config:
     # API settings
     API_HOST = os.getenv("API_HOST", "0.0.0.0")
     API_PORT = int(os.getenv("API_PORT", "8000"))
+
+    # LLM generation settings (Phase 6-A1)
+    LLM_MODEL = os.getenv("LLM_MODEL", "qwen3:4b-instruct")
+    LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.3"))
+    LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "500"))
 
     @classmethod
     def ensure_chroma_db_dir(cls):
