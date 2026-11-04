@@ -1,0 +1,222 @@
+[
+  {
+    "id": "Q001",
+    "question": "What is the task T for handwriting recognition?",
+    "expected_answer": "recognizing and classifying handwritten words within images",
+    "source_file": "BAI702-module-1-textbook.pdf",
+    "source_page": 3,
+    "source_chunk_index": 16,
+    "source_chunk_text": "A checkers learning problem: \nTask T: playing checkers \n0 Performance measure P: percent of games won against opponents \nTraining experience E: playing practice games against itself \nWe can specify many learning problems in this fashion, such as learning \nto recognize handwritten words, or learning to drive a robotic automobile au- \ntonomously. \nA handwriting recognition learning problem: \n0 Task T: recognizing and classifying handwritten words within images",
+    "answerable": true,
+    "kind": "document"
+  },
+  {
+    "id": "Q005",
+    "question": "What algorithm works on the same principle as LIST-THEN-ELIMINATE?",
+    "expected_answer": "CANDIDATE-ELIMINATION",
+    "source_file": "BAI702-module-1-textbook.pdf",
+    "source_page": 26,
+    "source_chunk_index": 150,
+    "source_chunk_text": "algorithm can be applied whenever \nthe hypothesis space H is finite. It has many advantages, including the fact that it \nis guaranteed to output all hypotheses consistent with the training data. Unfortu- \nnately, it requires exhaustively enumerating all hypotheses in H-an \nunrealistic \nrequirement for all but the most trivial hypothesis spaces. \n2.5.3 A More Compact Representation for Version Spaces \nThe CANDIDATE-ELIMINATION \nalgorithm works on the same principle as the above \nLIST-THEN-ELIMINATE",
+    "answerable": true,
+    "kind": "document"
+  },
+  {
+    "id": "Q016",
+    "question": "What is the number of the Digital Personal Data Protection Act?",
+    "expected_answer": "No. 22 of 2023",
+    "source_file": "DPDT_11082024.pdf",
+    "source_page": 1,
+    "source_chunk_index": 0,
+    "source_chunk_text": "THE DIGITAL PERSONAL DATA PROTECTION ACT, 2023\n(NO. 22 OF 2023)\n[11th August, 2023.]\nAn Act to provide for the processing of digital personal data in a manner that\nrecognises both the right of individuals to protect their personal data and the\nneed to process such personal data for lawful purposes and for matters\nconnected therewith or incidental thereto.\nBE it enacted by Parliament in the Seventy-fourth Year of the Republic of India as\nfollows:––\nCHAPTER I\nPRELIMINARY",
+    "answerable": true,
+    "kind": "document"
+  },
+  {
+    "id": "Q017",
+    "question": "What is the age limit for a child?",
+    "expected_answer": "eighteen years",
+    "source_file": "DPDT_11082024.pdf",
+    "source_page": 2,
+    "source_chunk_index": 5,
+    "source_chunk_text": "(c) “Board” means the Data Protection Board of India established by the Central\nGovernment under section 18;\n(d) “certain legitimate uses” means the uses referred to in section 7;\n(e) “Chairperson” means the Chairperson of the Board;\n(f) “child” means an individual who has not completed the age of eighteen\nyears;\n(g) “Consent Manager” means a person registered with the Board, who acts as\na single point of contact to enable a Data Principal to give, manage, review and",
+    "answerable": true,
+    "kind": "document"
+  },
+  {
+    "id": "Q018",
+    "question": "What does \"personal data\" mean?",
+    "expected_answer": "any data about an individual who is identifiable by or in relation to such data",
+    "source_file": "DPDT_11082024.pdf",
+    "source_page": 3,
+    "source_chunk_index": 11,
+    "source_chunk_text": "incorporated or not;\n(vi) the State; and\n(vii) every artificial juristic person, not falling within any of the preceding\nsub-clauses;\n(t) “personal data” means any data about an individual who is identifiable by or\nin relation to such data;\n(u) “personal data breach” means any unauthorised processing of personal\ndata or accidental disclosure, acquisition, sharing, use, alteration, destruction or loss\nof access to personal data, that compromises the confidentiality, integrity or availability",
+    "answerable": true,
+    "kind": "document"
+  },
+  {
+    "id": "Q020",
+    "question": "Who shall the Consent Manager be accountable to?",
+    "expected_answer": "the Data Principal",
+    "source_file": "DPDT_11082024.pdf",
+    "source_page": 6,
+    "source_chunk_index": 33,
+    "source_chunk_text": "(7) The Data Principal may give, manage, review or withdraw her consent to the Data\nFiduciary through a Consent Manager.\n(8) The Consent Manager shall be accountable to the Data Principal and shall act on\nher behalf in such manner and subject to such obligations as may be prescribed.\n(9) Every Consent Manager shall be registered with the Board in such manner and\nsubject to such technical, operational, financial and other conditions as may be prescribed.",
+    "answerable": true,
+    "kind": "document"
+  },
+  {
+    "id": "Q024",
+    "question": "What is the boiling point of tungsten?",
+    "expected_answer": "UNANSWERABLE",
+    "source_file": "none",
+    "source_page": null,
+    "source_chunk_index": null,
+    "source_chunk_text": "",
+    "answerable": false,
+    "kind": "trivia"
+  },
+  {
+    "id": "Q025",
+    "question": "Who won the 2010 FIFA World Cup?",
+    "expected_answer": "UNANSWERABLE",
+    "source_file": "none",
+    "source_page": null,
+    "source_chunk_index": null,
+    "source_chunk_text": "",
+    "answerable": false,
+    "kind": "trivia"
+  },
+  {
+    "id": "Q026",
+    "question": "What is the capital of Australia?",
+    "expected_answer": "UNANSWERABLE",
+    "source_file": "none",
+    "source_page": null,
+    "source_chunk_index": null,
+    "source_chunk_text": "",
+    "answerable": false,
+    "kind": "trivia"
+  },
+  {
+    "id": "Q027",
+    "question": "How many moons does Jupiter have?",
+    "expected_answer": "UNANSWERABLE",
+    "source_file": "none",
+    "source_page": null,
+    "source_chunk_index": null,
+    "source_chunk_text": "",
+    "answerable": false,
+    "kind": "trivia"
+  },
+  {
+    "id": "Q028",
+    "question": "Who wrote the novel Pride and Prejudice?",
+    "expected_answer": "UNANSWERABLE",
+    "source_file": "none",
+    "source_page": null,
+    "source_chunk_index": null,
+    "source_chunk_text": "",
+    "answerable": false,
+    "kind": "trivia"
+  },
+  {
+    "id": "Q029",
+    "question": "What is the phone number of the customer support helpline?",
+    "expected_answer": "UNANSWERABLE",
+    "source_file": "none",
+    "source_page": null,
+    "source_chunk_index": null,
+    "source_chunk_text": "",
+    "answerable": false,
+    "kind": "plausible"
+  },
+  {
+    "id": "Q030",
+    "question": "What was the total budget allocated to the Mars colony project?",
+    "expected_answer": "UNANSWERABLE",
+    "source_file": "none",
+    "source_page": null,
+    "source_chunk_index": null,
+    "source_chunk_text": "",
+    "answerable": false,
+    "kind": "plausible"
+  },
+  {
+    "id": "Q031",
+    "question": "Who is the current chief executive officer of the organization that published this?",
+    "expected_answer": "UNANSWERABLE",
+    "source_file": "none",
+    "source_page": null,
+    "source_chunk_index": null,
+    "source_chunk_text": "",
+    "answerable": false,
+    "kind": "plausible"
+  },
+  {
+    "id": "Q032",
+    "question": "What is the name of this Act?",
+    "expected_answer": "Digital Personal Data Protection Act, 2023",
+    "source_file": "DPDT_11082024.pdf",
+    "source_page": 1,
+    "source_chunk_index": 1,
+    "source_chunk_text": "follows:––\nCHAPTER I\nPRELIMINARY\n1. (1) This Act may be called the Digital Personal Data Protection Act, 2023.\n(2)  It shall come into force on such date as the Central Government may, by notification\nin the Official Gazette, appoint and different dates may be appointed for different provisions\nof this Act and any reference in any such provision to the commencement of this Act shall\nbe construed as a reference to the coming into force of that provision.\nShort title and\ncommencement.\nvlk/kkj.k\nEXTRAORDINARY",
+    "answerable": true,
+    "kind": "document"
+  },
+  {
+    "id": "Q033",
+    "question": "What does \"automated\" mean in this Act?",
+    "expected_answer": "any digital process capable of operating automatically",
+    "source_file": "DPDT_11082024.pdf",
+    "source_page": 2,
+    "source_chunk_index": 4,
+    "source_chunk_text": "2\nTHE GAZETTE OF INDIA EXTRAORDINARY\n[PART II—\n2. In this Act, unless the context otherwise requires,—\n(a) “Appellate Tribunal” means the Telecom Disputes Settlement and  Appellate\nTribunal established under section 14 of the Telecom Regulatory Authority of India\nAct, 1997;\n(b) “automated” means any digital process capable of operating automatically\nin response to instructions given or otherwise for the purpose of processing data;",
+    "answerable": true,
+    "kind": "document"
+  },
+  {
+    "id": "Q034",
+    "question": "Who appoints the Data Protection Officer?",
+    "expected_answer": "an individual appointed by the Significant Data Fiduciary",
+    "source_file": "DPDT_11082024.pdf",
+    "source_page": 2,
+    "source_chunk_index": 7,
+    "source_chunk_text": "(j) “Data Principal” means the individual to whom the personal data relates and\nwhere such individual is—\n(i) a child, includes the parents or lawful guardian of such a child;\n(ii) a person with disability, includes her lawful guardian, acting on her\nbehalf;\n(k) “Data Processor” means any person who processes personal data on behalf\nof a Data Fiduciary;\n(l) “Data Protection Officer” means an individual appointed by the Significant\nData Fiduciary under clause (a) of sub-section (2) of section 10;",
+    "answerable": true,
+    "kind": "document"
+  },
+  {
+    "id": "Q036",
+    "question": "What does 'State' mean in the context of the Constitution?",
+    "expected_answer": "the State as defined under article 12 of the Constitution",
+    "source_file": "DPDT_11082024.pdf",
+    "source_page": 3,
+    "source_chunk_index": 14,
+    "source_chunk_text": "and the rules made thereunder; and\n(zb) “State” means the State as defined under article 12 of the Constitution.\n3. Subject to the provisions of this Act, it shall—\n(a) apply to the processing of digital personal data within the territory of India\nwhere the personal data is collected––\n(i) in digital form; or\n(ii) in non-digital form and digitised subsequently;\n(b) also apply to processing of digital personal data outside the territory of",
+    "answerable": true,
+    "kind": "document"
+  },
+  {
+    "id": "Q040",
+    "question": "What is the role of a Data Fiduciary?",
+    "expected_answer": "be responsible for complying with the provisions of this Act",
+    "source_file": "DPDT_11082024.pdf",
+    "source_page": 7,
+    "source_chunk_index": 44,
+    "source_chunk_text": "8. (1) A Data Fiduciary shall, irrespective of any agreement to the contrary or failure of\na Data Principal to carry out the duties provided under this Act, be responsible for complying\nwith the provisions of this Act and the rules made thereunder in respect of any processing\nundertaken by it or on its behalf by a Data Processor.\n(2) A Data Fiduciary may engage, appoint, use or otherwise involve a Data Processor\nto process personal data on its behalf for any activity related to offering of goods or",
+    "answerable": true,
+    "kind": "document"
+  },
+  {
+    "id": "Q042",
+    "question": "Who shall establish a grievance redress mechanism?",
+    "expected_answer": "A Data Fiduciary",
+    "source_file": "DPDT_11082024.pdf",
+    "source_page": 8,
+    "source_chunk_index": 51,
+    "source_chunk_text": "(9) A Data Fiduciary shall publish, in such manner as may be prescribed, the business\ncontact information of a Data Protection Officer, if applicable, or a person who is able to\nanswer on behalf of the Data Fiduciary, the questions, if any, raised by the Data Principal\nabout the processing of her personal data.\n(10) A Data Fiduciary shall establish an effective mechanism to redress the grievances\nof Data Principals.",
+    "answerable": true,
+    "kind": "document"
+  }
+]

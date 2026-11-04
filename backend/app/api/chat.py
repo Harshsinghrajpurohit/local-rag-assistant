@@ -3,17 +3,59 @@ from ..models import QueryRequest, QueryResponse
 
 router = APIRouter()
 
+# Lazy-initialized service instances
+_chroma_service = None
+_hybrid_retriever = None
+_answer_generator = None
+
+def _get_chroma_service():
+    global _chroma_service
+    if _chroma_service is None:
+        from ..services.chroma_service import ChromaService
+        _chroma_service = ChromaService()
+    return _chroma_service
+
+def _get_hybrid_retriever():
+    global _hybrid_retriever
+    if _hybrid_retriever is None:
+        from ..services.chroma_service import ChromaService
+        from ..services.hybrid_retriever import HybridRetriever
+        _chroma_svc = _get_chroma_service()
+        _hybrid_retriever = HybridRetriever(chroma_service=_chroma_svc)
+    return _hybrid_retriever
+
+
+def get_retriever():
+    """Shared getter - returns the same HybridRetriever instance across requests."""
+    global _hybrid_retriever
+    if _hybrid_retriever is None:
+        from ..services.chroma_service import ChromaService
+        from ..services.hybrid_retriever import HybridRetriever
+        _chroma_svc = _get_chroma_service()
+        _hybrid_retriever = HybridRetriever(chroma_service=_chroma_svc)
+    return _hybrid_retriever
+
+
+def reset_retriever():
+    """Reset the retriever instance (use in test setup/teardown)."""
+    global _hybrid_retriever
+    _hybrid_retriever = None
+
+def _get_answer_generator():
+    global _answer_generator
+    if _answer_generator is None:
+        from ..services.answer_generator import AnswerGenerator
+        _answer_generator = AnswerGenerator()
+    return _answer_generator
+
 @router.post("/chat/query", response_model=QueryResponse)
 async def chat_query(request: QueryRequest):
-    # Initialize services
-    from ..services.chroma_service import ChromaService
-    from ..services.hybrid_retriever import HybridRetriever
-    from ..services.answer_generator import AnswerGenerator
+    # Initialize services (lazy - use getters)
+    # chroma_service, retriever, and answer_gen are obtained via _get_* getters
     from ..services.structured_query import parse_conditions, filter_structured_rows
-
-    chroma_service = ChromaService()
-    retriever = HybridRetriever(chroma_service=chroma_service)
-    answer_gen = AnswerGenerator()
+    chroma_service = _get_chroma_service()
+    retriever = get_retriever()
+    answer_gen = _get_answer_generator()
 
     # Detect structured query conditions (e.g., "stipend >= 40000 AND duration <= 3")
     conditions = parse_conditions(request.query)
@@ -22,7 +64,7 @@ async def chat_query(request: QueryRequest):
         # Structured query path: evaluate ALL tabular rows from ChromaDB,
         # not just top-k semantic retrieval results.
         all_results = chroma_service.collection.get(
-            include=["documents", "metadatas", "embeddings"]
+            include=["documents", "metadatas"]
         )
         documents = all_results.get("documents", [])
         metadatas = all_results.get("metadatas", [])

@@ -2,6 +2,7 @@
 FastAPI router for document operations: upload, list, and delete.
 """
 
+import logging
 import os
 import tempfile
 import uuid
@@ -20,6 +21,8 @@ from ..exceptions import (
     PdfCorruptedError,
     UnsupportedFormatError,
 )
+import requests
+from ..api.chat import get_retriever  # shared retriever getter
 from ..models import (
     DeleteResponse,
     Document,
@@ -32,6 +35,8 @@ from ..models import (
 from ..services.document_processor import SUPPORTED_EXTENSIONS, process_document
 
 router = APIRouter()
+
+logger = logging.getLogger(__name__)
 
 
 @router.post("/documents/upload", response_model=DocumentResponse)
@@ -113,28 +118,36 @@ async def upload_document(
 
         # Store in ChromaDB via ChromaService
         from ..services.chroma_service import ChromaService
-        chroma_service = ChromaService()
+        try:
+            chroma_service = ChromaService()
 
-        # Attach document-level metadata to every chunk before persisting.
-        # file_name is overwritten with the original uploaded filename because
-        # process_pdf derives file_name from the temporary file path.
-        for chunk in chunks:
-            chunk["doc_id"] = doc_id
-            chunk["file_name"] = file_name
-            chunk["file_type"] = ext.lstrip(".")
-            chunk["upload_time"] = upload_time
-            chunk["size_bytes"] = size_bytes
+            # Attach document-level metadata to every chunk before persisting.
+            # file_name is overwritten with the original uploaded filename because
+            # process_pdf derives file_name from the temporary file path.
+            for chunk in chunks:
+                chunk["doc_id"] = doc_id
+                chunk["file_name"] = file_name
+                chunk["file_type"] = ext.lstrip(".")
+                chunk["upload_time"] = upload_time
+                chunk["size_bytes"] = size_bytes
 
-        added_ids = chroma_service.add_chunks(chunks)
+            added_ids = chroma_service.add_chunks(chunks)
+            get_retriever().rebuild_index()
 
-        return DocumentResponse(
-            doc_id=doc_id,
-            file_name=file_name,
-            file_type=ext.lstrip("."),
-            num_chunks=num_chunks,
-            upload_time=upload_time,
-            size_bytes=size_bytes
-        )
+            return DocumentResponse(
+                doc_id=doc_id,
+                file_name=file_name,
+                file_type=ext.lstrip("."),
+                num_chunks=num_chunks,
+                upload_time=upload_time,
+                size_bytes=size_bytes
+            )
+        except requests.exceptions.RequestException as e:
+            logger.error("Ollama request failed during document upload: %s", e)
+            raise OllamaUnavailableError("LLM service unavailable during upload") from e
+        except Exception as e:
+            logger.exception("Upload failed")
+            raise InternalServerError() from e
 
     except PdfCorruptedError as e:
         raise PdfCorruptedError()
@@ -211,6 +224,8 @@ async def list_documents():
             size_bytes=size_bytes_values.pop(),
         ))
 
+    # Rebuild BM25 index after successful upload
+
     return DocumentListResponse(
         documents=documents,
         total_documents=len(documents),
@@ -274,8 +289,7 @@ async def delete_document(
         )
 
         # Rebuild BM25 index
-        from ..services.hybrid_retriever import HybridRetriever
-        HybridRetriever(chroma_service=chroma_service).rebuild_index()
+        get_retriever().rebuild_index()
 
         return DeleteResponse(
             doc_id=doc_id,

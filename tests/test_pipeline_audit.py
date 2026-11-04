@@ -264,18 +264,16 @@ class TestChunkingSplitsRelatedContent:
 # ---------------------------------------------------------------------------
 
 class TestBM25IndexAfterUpload:
-    """Defect D2: BM25 index not rebuilt after upload in upload endpoint."""
+    """Defect D2: BM25 index rebuilt after upload in upload endpoint - FIXED."""
 
-    def test_upload_endpoint_does_not_rebuild_bm25(self):
-        """upload_document() calls add_chunks() but never rebuild_index()."""
+    def test_upload_endpoint_rebuilds_bm25(self):
+        """D2 fixed: upload_document() must refresh the BM25 index after add_chunks()."""
         import inspect
         from backend.app.api import documents as documents_module
         source = inspect.getsource(documents_module.upload_document)
         assert "add_chunks" in source
-        assert "rebuild_index" not in source, (
-            "D2 not reproduced: rebuild_index() IS called after upload"
-        )
-
+        assert "rebuild_index" in source
+        assert source.index("rebuild_index") > source.index("add_chunks")
     def test_delete_endpoint_rebuilds_bm25(self):
         """The delete endpoint DOES call rebuild_index() (asymmetric behavior)."""
         import inspect

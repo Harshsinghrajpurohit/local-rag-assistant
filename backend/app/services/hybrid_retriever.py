@@ -286,7 +286,7 @@ class HybridRetriever:
         # Fetch full documents and metadata from ChromaDB
         batch_results = self.chroma.collection.get(
             ids=top_doc_ids,
-            include=["documents", "metadatas", "embeddings"],
+            include=["documents", "metadatas"],
         )
 
         # Build response in fused order
